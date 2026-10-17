@@ -1,0 +1,102 @@
+-- Crear base de datos
+CREATE DATABASE sistema_ventas;
+GO
+
+-- Usar la base de datos
+USE sistema_ventas;
+GO
+
+-- Tabla de usuarios
+CREATE TABLE usuarios (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    nombre NVARCHAR(100) NOT NULL,
+    email NVARCHAR(100) UNIQUE NOT NULL,
+    password NVARCHAR(255) NOT NULL,
+    rol NVARCHAR(20) DEFAULT 'vendedor',
+    activo BIT DEFAULT 1,
+    fecha_creacion DATETIME DEFAULT GETDATE()
+);
+GO
+
+-- Tabla de productos
+CREATE TABLE productos (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    nombre NVARCHAR(100) NOT NULL,
+    descripcion NVARCHAR(255),
+    precio DECIMAL(10,2) NOT NULL,
+    stock INT NOT NULL DEFAULT 0,
+    categoria NVARCHAR(50),
+    fecha_creacion DATETIME DEFAULT GETDATE()
+);
+GO
+
+-- Tabla de ventas
+CREATE TABLE ventas (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    fecha_venta DATETIME DEFAULT GETDATE(),
+    total DECIMAL(10,2) NOT NULL,
+    cliente NVARCHAR(100),
+    usuario_id INT FOREIGN KEY REFERENCES usuarios(id)
+);
+GO
+
+-- Tabla de detalle de ventas
+CREATE TABLE detalle_ventas (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    venta_id INT FOREIGN KEY REFERENCES ventas(id),
+    producto_id INT FOREIGN KEY REFERENCES productos(id),
+    cantidad INT NOT NULL,
+    precio_unitario DECIMAL(10,2) NOT NULL,
+    subtotal DECIMAL(10,2) NOT NULL
+);
+GO
+
+-- Insertar usuario administrador por defecto
+INSERT INTO usuarios (nombre, email, password, rol) 
+VALUES ('Administrador', 'admin@sistema.com', '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
+-- Contraseña: "password"
+GO
+
+-- Insertar productos de ejemplo
+INSERT INTO productos (nombre, descripcion, precio, stock, categoria) VALUES
+('Laptop HP Pavilion', 'Laptop 15.6 pulgadas, 8GB RAM, 256GB SSD', 1200.00, 10, 'Tecnología'),
+('Mouse Inalámbrico Logitech', 'Mouse ergonómico inalámbrico 2.4GHz', 25.50, 50, 'Tecnología'),
+('Teclado Mecánico RGB', 'Teclado mecánico gaming con retroiluminación RGB', 89.99, 15, 'Tecnología'),
+('Monitor 24" Samsung', 'Monitor LED 24 pulgadas Full HD', 199.99, 8, 'Tecnología'),
+('Impresora Láser', 'Impresora láser multifunción WiFi', 150.00, 5, 'Oficina'),
+('Silla Oficina Ergonómica', 'Silla ergonómica ajustable para oficina', 299.99, 12, 'Muebles'),
+('Tablet Android 10"', 'Tablet Android 10 pulgadas, 64GB', 299.00, 20, 'Tecnología'),
+('Disco Duro Externo 1TB', 'Disco duro externo USB 3.0', 79.99, 30, 'Almacenamiento');
+GO
+
+-- Crear vistas para reportes
+CREATE VIEW reporte_ventas AS
+SELECT 
+    v.id,
+    v.fecha_venta,
+    v.cliente,
+    u.nombre as vendedor,
+    v.total,
+    (SELECT COUNT(*) FROM detalle_ventas dv WHERE dv.venta_id = v.id) as items
+FROM ventas v
+LEFT JOIN usuarios u ON v.usuario_id = u.id;
+GO
+
+CREATE VIEW productos_mas_vendidos AS
+SELECT 
+    p.nombre,
+    p.categoria,
+    SUM(dv.cantidad) as total_vendido,
+    SUM(dv.subtotal) as ingreso_total
+FROM detalle_ventas dv
+JOIN productos p ON dv.producto_id = p.id
+GROUP BY p.id, p.nombre, p.categoria
+ORDER BY total_vendido DESC;
+GO
+
+-- Mensaje de confirmación
+PRINT '✅ Base de datos sistema_ventas creada exitosamente!';
+PRINT '📊 Tablas creadas: usuarios, productos, ventas, detalle_ventas';
+PRINT '👤 Usuario admin: admin@sistema.com / password';
+PRINT '📦 Productos de ejemplo insertados: 8 productos';
+GO

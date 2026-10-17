@@ -1,0 +1,18 @@
+1 - instalar Visual Studio code
+2 - instalar node
+3 - Abrir el Proyecto 
+4 - instalar SQL Server Express
+5 - abrir el scrip de la base de datos
+6 - abrir la terminal de visual studio code 
+7 - en la terminal iniciar el servidor con el comando cd backend y después node server.js
+8 - abrir el explorador con la dirección http://localhost:3000
+9 - entrar con : 
+
+
+
+Servidor iniciado en http://localhost:3000
+
+Email: admin@sistema.com
+🔑 Contraseña recibida: "password"
+
+10 - se visualiza el sistema de ventas
